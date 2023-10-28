@@ -3,6 +3,7 @@ import queue
 from customer import CustomerStatus, Customer
 from simulations import CustomerEvent
 from enum import Enum
+from threading import Thread, Lock
 
 class QueueStatus(Enum):
     WORKING = "working"
@@ -47,6 +48,7 @@ class MMCKQueue:
         self.queueRatio = queueRatio
         self.queueStatus = QueueStatus.WORKING
         self.waitCustomerFromOtherQueue = waitCustomerFromOtherQueue
+        self.lock = Lock()
 
     def arrival(self, customerEvent):
         if self.availableServers > 0:
@@ -114,7 +116,8 @@ class MMCKQueue:
                     self.notifyOtherQueue()
                             
             if self.customerEventSim.eventList:
-                event = self.customerEventSim.eventList.pop(0)
+                with self.lock:
+                    event = self.customerEventSim.eventList.pop(0)
                 #totalWaitingTime = total time wait in system 
                 '''
                     current time - previous time = service time 

@@ -1,11 +1,14 @@
 import random
 from customer import *
+from threading import Thread, Lock
+
 
 class CustomerEvent:
     def __init__(self, arrivalRate = 1):
         self.event = None
         self.arrivalRate = arrivalRate
         self.eventList = []
+        self.lock = Lock()
     # def generate(self, customerNum):
     #     if customerNum < 1:
     #         return
@@ -40,17 +43,17 @@ class CustomerEvent:
                 break
                 
     def addCustomerEvent(self, event):
-        if len(self.eventList) == 0:
-            self.eventList.append(event)
-        else:        
-            i = 0
-            for i in range(len(self.eventList)+1):
-                if len(self.eventList) == i:
-                    break
-                if self.eventList[i].arrivalTime > event.arrivalTime:
-                    break
-            
-            self.eventList.insert(i, event)
+        with self.lock:
+            if len(self.eventList) == 0:
+                self.eventList.append(event)
+            else:        
+                i = 0
+                for i in range(len(self.eventList)+1):
+                    if len(self.eventList) == i:
+                        break
+                    if self.eventList[i].arrivalTime > event.arrivalTime:
+                        break
+                self.eventList.insert(i, event)
     
     def printList(self):
         print('\n=======printList======')

@@ -17,7 +17,7 @@ if __name__ == '__main__':
     foodCustomerEvent = CustomerEvent(0.05)
     drinkCustomerEvent = CustomerEvent(0.05)
 
-    simulationTime = 1000
+    simulationTime = 200000
     
     entranceCustomerEvent.timeGenerate(simulationTime = simulationTime, arrivalTime = 0)
     
