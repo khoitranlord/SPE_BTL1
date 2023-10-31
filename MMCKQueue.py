@@ -25,7 +25,9 @@ class MMCKQueue:
         customerEventSim,
         nextQueueList=None,
         queueRatio=None,
-        waitCustomerFromOtherQueue = False
+        waitCustomerFromOtherQueue = False,
+        queueLock = Lock(),
+        printLock = Lock()
     ):
         self.name = name
         self.service_rate = service_rate
@@ -48,7 +50,8 @@ class MMCKQueue:
         self.queueRatio = queueRatio
         self.queueStatus = QueueStatus.WORKING
         self.waitCustomerFromOtherQueue = waitCustomerFromOtherQueue
-        self.lock = Lock()
+        self.queueLock = queueLock
+        self.printLock = printLock
 
     def arrival(self, customerEvent):
         if self.availableServers > 0:
@@ -116,7 +119,7 @@ class MMCKQueue:
                     self.notifyOtherQueue()
                             
             if self.customerEventSim.eventList:
-                with self.lock:
+                with self.queueLock:
                     event = self.customerEventSim.eventList.pop(0)
                 #totalWaitingTime = total time wait in system 
                 '''
@@ -142,6 +145,8 @@ class MMCKQueue:
                 elif event.CustomerStatus == CustomerStatus.ARRIVAL:
                     self.arrival(event)
                 # print('\n--queueName=', self.name, 'waitingQueueSize=', self.waitingQueue.qsize(), 'servingNum=', self.servingNum)
+        else:
+            self.stats()
 
     def stop(self):
         self.queueStatus = QueueStatus.STOP
@@ -151,23 +156,21 @@ class MMCKQueue:
     def notifyOtherQueue(self):
         for queue in self.nextQueueList:
             queue.waitCustomerFromOtherQueue = False
-
+        
     def stats(self):
-        try:
-            self.avgWaitLen = self.totalWaitingTime / self.currentTime  # Corrected variable name
-            self.avgWaitQuLen = self.totalQueueTime / self.currentTime
-            self.avgWaitTime = self.totalWaitingTime / self.totalServedCustomers
-            self.avgWaitQuTime = self.totalQueueTime / self.totalServedCustomers
-        except ZeroDivisionError:
-            print("ZeroDivisionError")
-        
-    def show_each(self):
-        
-        print("-------------------------------------------------")
-        print("queueName=",self.name, "\nstats:")
-        print("avgWaitTime=", self.avgWaitTime)
-        print('awgWaitLen=', self.avgWaitLen)
-        print('avgWaitQuTime=', self.avgWaitQuTime)
-        print('avgWaitQuLen=', self.avgWaitQuLen)
-        print('totalServedCustomers=', self.totalServedCustomers)
-        print("-------------------------------------------------")
+        with self.printLock:
+            try:
+                self.avgWaitLen = self.totalWaitingTime / self.currentTime  # Corrected variable name
+                self.avgWaitQuLen = self.totalQueueTime / self.currentTime
+                self.avgWaitTime = self.totalWaitingTime / self.totalServedCustomers
+                self.avgWaitQuTime = self.totalQueueTime / self.totalServedCustomers
+            except ZeroDivisionError:
+                print("ZeroDivisionError")
+            print("-------------------------------------------------")
+            print("queueName=",self.name, "\nstats:")
+            print("avgWaitTime=", self.avgWaitTime)
+            print('awgWaitLen=', self.avgWaitLen)
+            print('avgWaitQuTime=', self.avgWaitQuTime)
+            print('avgWaitQuLen=', self.avgWaitQuLen)
+            print('totalServedCustomers=', self.totalServedCustomers)
+            print("-------------------------------------------------")

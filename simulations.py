@@ -4,11 +4,11 @@ from threading import Thread, Lock
 
 
 class CustomerEvent:
-    def __init__(self, arrivalRate = 1):
+    def __init__(self, arrivalRate = 1, lock = Lock()):
         self.event = None
         self.arrivalRate = arrivalRate
         self.eventList = []
-        self.lock = Lock()
+        self.lock = lock
     # def generate(self, customerNum):
     #     if customerNum < 1:
     #         return
